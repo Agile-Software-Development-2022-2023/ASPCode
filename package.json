@@ -10,14 +10,39 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:answer-set-programming-plugin.helloWorld"
+		"onLanguage:asp"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "answer-set-programming-plugin.helloWorld",
-				"title": "Hello World"
+				"command": "answer-set-programming-plugin.highlightMuses",
+				"title": "Highlight MUSes",
+				"enablement": "editorLangId == asp",
+				"icon": "$(bug)"
+			}
+		],
+		"menus": {
+			"editor/title": [
+				{
+					"when": "editorLangId == asp",
+					"command": "answer-set-programming-plugin.highlightMuses",
+					"group": "navigation"
+				}
+			]
+		},
+		"languages": [
+			{
+				"id": "asp",
+				"aliases": [
+					"asp",
+					"ASP-Core-2",
+					"Answer Set Programming"
+				],
+				"extensions": [
+					".lp",
+					".asp"
+				]
 			}
 		]
 	},
@@ -30,16 +55,19 @@
 		"test": "node ./out/test/runTest.js"
 	},
 	"devDependencies": {
-		"@types/vscode": "^1.73.0",
 		"@types/glob": "^7.2.0",
 		"@types/mocha": "^9.1.1",
 		"@types/node": "16.x",
-		"@typescript-eslint/eslint-plugin": "^5.30.0",
-		"@typescript-eslint/parser": "^5.30.0",
-		"eslint": "^8.18.0",
+		"@types/vscode": "^1.73.1",
+		"@typescript-eslint/eslint-plugin": "^5.44.0",
+		"@typescript-eslint/parser": "^5.44.0",
+		"@vscode/test-electron": "^2.1.5",
+		"eslint": "^8.28.0",
 		"glob": "^8.0.3",
 		"mocha": "^10.0.0",
-		"typescript": "^4.7.4",
-		"@vscode/test-electron": "^2.1.5"
+		"typescript": "^4.9.3"
+	},
+	"dependencies": {
+		"asp-debugger": "git+https://github.com/Agile-Software-Development-2022-2023/ASP-Debugger.git#develop"
 	}
 }

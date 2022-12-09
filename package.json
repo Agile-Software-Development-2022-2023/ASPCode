@@ -20,6 +20,68 @@
 				"title": "Highlight MUSes",
 				"enablement": "editorLangId == asp",
 				"icon": "$(bug)"
+			},
+			{
+				"command": "answer-set-programming-plugin.viewAllPools",
+				"title": "View all pools of linked files",
+				"category": "ASP",
+				"enablement": "editorLangId == asp"
+			},
+			{
+				"command": "answer-set-programming-plugin.viewCurrentFilePool",
+				"title": "View the current file's pool of linked files",
+				"category": "ASP",
+				"enablement": "editorLangId == asp"
+			},
+			{
+				"command": "answer-set-programming-plugin.linkFiles",
+				"title": "Link current file to others",
+				"category": "ASP",
+				"enablement": "editorLangId == asp"
+			},
+			{
+				"command": "answer-set-programming-plugin.unlinkFiles",
+				"title": "Unlink current file from all others",
+				"category": "ASP",
+				"enablement": "editorLangId == asp"
+			},
+			{
+				"command": "answer-set-programming-plugin.disbandPool",
+				"title": "Disband the current file's pool of linked files",
+				"category": "ASP",
+				"enablement": "editorLangId == asp"
+			}
+		],
+		"keybindings":[
+			{
+				"command": "answer-set-programming-plugin.viewAllPools",
+				"key": "ctrl+alt+v",
+				"mac": "cmd+alt+v",
+				"when": "resourceLangId == asp"
+			},
+			{
+				"command": "answer-set-programming-plugin.viewCurrentFilePool",
+				"key": "ctrl+alt+c",
+				"mac": "cmd+alt+c",
+				"when": "resourceLangId == asp"
+			},
+			{
+				"command": "answer-set-programming-plugin.linkFiles",
+				"key": "ctrl+alt+l",
+				"mac": "cmd+alt+l",
+				"when": "resourceLangId == asp"
+			},
+			{
+				"command": "answer-set-programming-plugin.unlinkFiles",
+				"key": "ctrl+alt+u",
+				"mac": "cmd+alt+u",
+				"when": "resourceLangId == asp"
+			},
+			{
+				"command": "answer-set-programming-plugin.disbandPool",
+				"key": "ctrl+alt+k",
+				"mac": "cmd+alt+k",
+				"when": "resourceLangId == asp"
 			}
 		],
 		"menus": {
@@ -29,8 +91,43 @@
 					"command": "answer-set-programming-plugin.highlightMuses",
 					"group": "navigation"
 				}
+			],
+			"editor/context": [
+				{
+					"when": "editorLangId == asp",
+					"submenu": "answer-set-programming-plugin.linkings",
+					"group": "main@1"
+				}
+			],
+			"answer-set-programming-plugin.linkings": [
+				{
+					"command": "answer-set-programming-plugin.viewAllPools",
+					"group": "linkings@1"
+				},
+				{
+					"command": "answer-set-programming-plugin.viewCurrentFilePool",
+					"group": "linkings@2"
+				},
+				{
+					"command": "answer-set-programming-plugin.linkFiles",
+					"group": "linkings@3"
+				},
+				{
+					"command": "answer-set-programming-plugin.unlinkFiles",
+					"group": "linkings@4"
+				},
+				{
+					"command": "answer-set-programming-plugin.disbandPool",
+					"group": "linkings@5"
+				}
 			]
 		},
+		"submenus": [
+			{
+				"id": "answer-set-programming-plugin.linkings",
+				"label": "ASP > Linking"
+			}
+		],
 		"languages": [
 			{
 				"id": "asp",
@@ -57,12 +154,12 @@
 	"devDependencies": {
 		"@types/glob": "^7.2.0",
 		"@types/mocha": "^9.1.1",
-		"@types/node": "16.x",
+		"@types/node": "^16.18.4",
 		"@types/vscode": "^1.73.1",
-		"@typescript-eslint/eslint-plugin": "^5.44.0",
-		"@typescript-eslint/parser": "^5.44.0",
+		"@typescript-eslint/eslint-plugin": "^5.45.0",
+		"@typescript-eslint/parser": "^5.45.0",
 		"@vscode/test-electron": "^2.1.5",
-		"eslint": "^8.28.0",
+		"eslint": "^8.29.0",
 		"glob": "^8.0.3",
 		"mocha": "^10.0.0",
 		"typescript": "^4.9.3"

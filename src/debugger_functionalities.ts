@@ -103,6 +103,8 @@ export function initializeDebuggerFunctionalities(context: vscode.ExtensionConte
     context.subscriptions.push(vscode.commands.registerCommand('answer-set-programming-plugin.highlightMuses', () => {
 		if(vscode.window.activeTextEditor && vscode.window.activeTextEditor.document.languageId == "asp") {
 			
+			vscode.commands.executeCommand('setContext', 'answer-set-programming-plugin.areMultipleMUSesPresent', false);
+
 			let non_ground_rules: Set<string>[] | null = null;
 			let ground_rules: Map<string, string[]>;
 			let musesCalculator = new debug.MUSesCalculator();
@@ -116,13 +118,16 @@ export function initializeDebuggerFunctionalities(context: vscode.ExtensionConte
 				else
 					files = [vscode.window.activeTextEditor.document.fileName];
 				
-				musesCalculator.calculateMUSes(files, 1);
+				musesCalculator.calculateMUSes(files, 3);
 				non_ground_rules = musesCalculator.getNonGroundRulesForMUSes();
 				ground_rules = musesCalculator.getGroundRulesForMUS(0);
 				//Only consider the first MUS for now
-				if(non_ground_rules && non_ground_rules.length > 0)
+				if(non_ground_rules && non_ground_rules.length > 1)
+					vscode.commands.executeCommand('setContext', 'answer-set-programming-plugin.areMultipleMUSesPresent', true);
+				
+				if(non_ground_rules && non_ground_rules.length > 0) 
 					decorateRules(files, non_ground_rules[0], ground_rules);
-				else
+				else 
 					removeDecorations();
 			} catch (error) {
 				vscode.window.showErrorMessage("There was a problem calculating the MUSes: " + error);

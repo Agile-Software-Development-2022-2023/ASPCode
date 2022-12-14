@@ -81,6 +81,7 @@ function removeDecorations() {
 function initializeDebuggerFunctionalities(context) {
     context.subscriptions.push(vscode.commands.registerCommand('answer-set-programming-plugin.highlightMuses', () => {
         if (vscode.window.activeTextEditor && vscode.window.activeTextEditor.document.languageId == "asp") {
+            vscode.commands.executeCommand('setContext', 'answer-set-programming-plugin.areMultipleMUSesPresent', false);
             let non_ground_rules = null;
             let ground_rules;
             let musesCalculator = new debug.MUSesCalculator();
@@ -92,10 +93,14 @@ function initializeDebuggerFunctionalities(context) {
                 }
                 else
                     files = [vscode.window.activeTextEditor.document.fileName];
-                musesCalculator.calculateMUSes(files, 1);
+                musesCalculator.calculateMUSes(files, 3);
                 non_ground_rules = musesCalculator.getNonGroundRulesForMUSes();
                 ground_rules = musesCalculator.getGroundRulesForMUS(0);
                 //Only consider the first MUS for now
+                if (non_ground_rules && non_ground_rules.length > 1)
+                    vscode.commands.executeCommand('setContext', 'answer-set-programming-plugin.areMultipleMUSesPresent', true);
+                //else
+                //	vscode.commands.executeCommand('setContext', 'answer-set-programming-plugin.areMultipleMUSesPresent', false);
                 if (non_ground_rules && non_ground_rules.length > 0)
                     decorateRules(files, non_ground_rules[0], ground_rules);
                 else

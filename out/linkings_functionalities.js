@@ -1,18 +1,19 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.initializeLinkingsFunctionalities = void 0;
+exports.initializeLinkingsFunctionalities = exports.checkCurrentFile = exports.checkWorkspace = void 0;
 const vscode = require("vscode");
 const debug = require("asp-debugger");
 const path = require("path");
-let outputChannel = null;
 //Checks if there is a workspace loaded in which to search for the linkings file
-function checkWorkspace() {
+function checkWorkspace(workspaceRequired) {
     if (!(vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length != 0)) {
-        vscode.window.showErrorMessage("A workspace must be open to use this functionality");
+        if (workspaceRequired)
+            vscode.window.showErrorMessage("A workspace must be open to use this functionality");
         return false;
     }
     return true;
 }
+exports.checkWorkspace = checkWorkspace;
 //Check if the file with focus is a valid ASP file
 function checkCurrentFile() {
     if (!vscode.window.activeTextEditor) {
@@ -25,9 +26,11 @@ function checkCurrentFile() {
     }
     return true;
 }
+exports.checkCurrentFile = checkCurrentFile;
 function initializeLinkingsFunctionalities(context) {
+    let outputChannel = null;
     context.subscriptions.push(vscode.commands.registerCommand("answer-set-programming-plugin.linkFiles", async function () {
-        if (checkWorkspace() && checkCurrentFile()) {
+        if (checkWorkspace(true) && checkCurrentFile()) {
             const path_to_file_in_focus = vscode.window.activeTextEditor.document.fileName;
             //Prompts the user for files to link to the file currently in focus
             let result = await vscode.window.showOpenDialog({
@@ -56,7 +59,7 @@ function initializeLinkingsFunctionalities(context) {
         }
     }));
     context.subscriptions.push(vscode.commands.registerCommand("answer-set-programming-plugin.unlinkFiles", function () {
-        if (checkWorkspace() && checkCurrentFile()) {
+        if (checkWorkspace(true) && checkCurrentFile()) {
             const path_to_file_in_focus = vscode.window.activeTextEditor.document.fileName;
             const linkings_file_path = path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, ".linkings.json");
             try {
@@ -70,7 +73,7 @@ function initializeLinkingsFunctionalities(context) {
         }
     }));
     context.subscriptions.push(vscode.commands.registerCommand("answer-set-programming-plugin.disbandPool", async function () {
-        if (checkWorkspace() && checkCurrentFile()) {
+        if (checkWorkspace(true) && checkCurrentFile()) {
             //Check if the action was intended as it is a dangerous operation
             let answer = await vscode.window.showWarningMessage("Are you sure you want to continue?", { "modal": true, "detail": "This operation will unlink this file and all files linked to it from each other." }, "Yes", "No");
             if (answer !== "Yes")
@@ -88,7 +91,7 @@ function initializeLinkingsFunctionalities(context) {
         }
     }));
     context.subscriptions.push(vscode.commands.registerCommand("answer-set-programming-plugin.viewAllPools", function () {
-        if (checkWorkspace() && checkCurrentFile()) {
+        if (checkWorkspace(true) && checkCurrentFile()) {
             if (!outputChannel)
                 outputChannel = vscode.window.createOutputChannel("Linked files");
             outputChannel.clear();
@@ -115,7 +118,7 @@ function initializeLinkingsFunctionalities(context) {
         }
     }));
     context.subscriptions.push(vscode.commands.registerCommand("answer-set-programming-plugin.viewCurrentFilePool", function () {
-        if (checkWorkspace() && checkCurrentFile()) {
+        if (checkWorkspace(true) && checkCurrentFile()) {
             if (!outputChannel)
                 outputChannel = vscode.window.createOutputChannel("Linked files");
             outputChannel.clear();

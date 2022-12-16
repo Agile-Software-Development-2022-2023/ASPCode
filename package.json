@@ -50,6 +50,24 @@
 				"title": "Disband the current file's pool of linked files",
 				"category": "ASP",
 				"enablement": "editorLangId == asp"
+			},
+			{
+				"command": "answer-set-programming-plugin.computeGroundProgram",
+				"title": "Compute ground program",
+				"category": "ASP",
+				"enablement": "editorLangId == asp"
+			},
+			{
+				"command": "answer-set-programming-plugin.computeSingleAnswerSet",
+				"title": "Compute a single Answer Set",
+				"category": "ASP",
+				"enablement": "editorLangId == asp"
+			},
+			{
+				"command": "answer-set-programming-plugin.computeAllAnswerSets",
+				"title": "Compute all Answer Sets",
+				"category": "ASP",
+				"enablement": "editorLangId == asp"
 			}
 		],
 		"keybindings":[
@@ -57,31 +75,49 @@
 				"command": "answer-set-programming-plugin.viewAllPools",
 				"key": "ctrl+alt+v",
 				"mac": "cmd+alt+v",
-				"when": "resourceLangId == asp"
+				"when": "editorLangId == asp"
 			},
 			{
 				"command": "answer-set-programming-plugin.viewCurrentFilePool",
 				"key": "ctrl+alt+c",
 				"mac": "cmd+alt+c",
-				"when": "resourceLangId == asp"
+				"when": "editorLangId == asp"
 			},
 			{
 				"command": "answer-set-programming-plugin.linkFiles",
 				"key": "ctrl+alt+l",
 				"mac": "cmd+alt+l",
-				"when": "resourceLangId == asp"
+				"when": "editorLangId == asp"
 			},
 			{
 				"command": "answer-set-programming-plugin.unlinkFiles",
 				"key": "ctrl+alt+u",
 				"mac": "cmd+alt+u",
-				"when": "resourceLangId == asp"
+				"when": "editorLangId == asp"
 			},
 			{
 				"command": "answer-set-programming-plugin.disbandPool",
 				"key": "ctrl+alt+k",
 				"mac": "cmd+alt+k",
-				"when": "resourceLangId == asp"
+				"when": "editorLangId == asp"
+			},
+			{
+				"command": "answer-set-programming-plugin.computeGroundProgram",
+				"key": "ctrl+alt+g",
+				"mac": "cmd+alt+g",
+				"when": "editorLangId == asp"
+			},
+			{
+				"command": "answer-set-programming-plugin.computeSingleAnswerSet",
+				"key": "ctrl+alt+s",
+				"mac": "cmd+alt+s",
+				"when": "editorLangId == asp"
+			},
+			{
+				"command": "answer-set-programming-plugin.computeAllAnswerSets",
+				"key": "ctrl+alt+a",
+				"mac": "cmd+alt+a",
+				"when": "editorLangId == asp"
 			}
 		],
 		"menus": {
@@ -95,8 +131,27 @@
 			"editor/context": [
 				{
 					"when": "editorLangId == asp",
-					"submenu": "answer-set-programming-plugin.linkings",
+					"submenu": "answer-set-programming-plugin.groundingAndSolving",
 					"group": "main@1"
+				},
+				{
+					"when": "editorLangId == asp",
+					"submenu": "answer-set-programming-plugin.linkings",
+					"group": "main@2"
+				}
+			],
+			"answer-set-programming-plugin.groundingAndSolving": [
+				{
+					"command": "answer-set-programming-plugin.computeGroundProgram",
+					"group": "groundingAndSolving@1"
+				},
+				{
+					"command": "answer-set-programming-plugin.computeSingleAnswerSet",
+					"group": "groundingAndSolving@2"
+				},
+				{
+					"command": "answer-set-programming-plugin.computeAllAnswerSets",
+					"group": "groundingAndSolving@3"
 				}
 			],
 			"answer-set-programming-plugin.linkings": [
@@ -123,6 +178,10 @@
 			]
 		},
 		"submenus": [
+			{
+				"id": "answer-set-programming-plugin.groundingAndSolving",
+				"label": "ASP > Grounding and solving"
+			},
 			{
 				"id": "answer-set-programming-plugin.linkings",
 				"label": "ASP > Linking"

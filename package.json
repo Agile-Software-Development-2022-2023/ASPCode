@@ -52,6 +52,18 @@
 				"enablement": "editorLangId == asp"
 			},
 			{
+				"command": "answer-set-programming-plugin.getNextMus",
+				"title": "Next MUS",
+				"enablement": "editorLangId == asp",
+				"icon": "$(arrow-down)"
+			},
+			{
+				"command": "answer-set-programming-plugin.getPreviousMus",
+				"title": "Previous MUS",
+				"enablement": "editorLangId == asp",
+				"icon": "$(arrow-up)"
+			},
+			{
 				"command": "answer-set-programming-plugin.computeGroundProgram",
 				"title": "Compute ground program",
 				"category": "ASP",
@@ -125,6 +137,16 @@
 				{
 					"when": "editorLangId == asp",
 					"command": "answer-set-programming-plugin.highlightMuses",
+					"group": "navigation"
+				},
+				{
+					"when": "answer-set-programming-plugin.areMultipleMUSesPresent",
+					"command": "answer-set-programming-plugin.getNextMus",
+					"group": "navigation"
+				},
+				{
+					"when": "answer-set-programming-plugin.areMultipleMUSesPresent",
+					"command": "answer-set-programming-plugin.getPreviousMus",
 					"group": "navigation"
 				}
 			],

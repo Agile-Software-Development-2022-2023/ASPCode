@@ -5,32 +5,37 @@ const vscode = require("vscode");
 const debug = require("asp-debugger");
 const path = require("path");
 const fs = require("fs");
-const decorationType = vscode.window.createTextEditorDecorationType({
+let musesCalculator = new debug.MUSesCalculator();
+let musesNumber = 0;
+let musIndex = 0;
+let lastActiveEditor;
+let files;
+let decorationType = vscode.window.createTextEditorDecorationType({
     backgroundColor: 'rgba(255, 137, 46, 0.3)',
     rangeBehavior: vscode.DecorationRangeBehavior.ClosedClosed
 });
 let outputChannel = null;
 let activeTextEditorListener = null;
-function decorateEditor(editor, rulesToFiles, ground_rules) {
+function decorateEditor(editor, rulesToFiles, groundRules) {
     if (!editor)
         return;
     if (rulesToFiles.has(editor.document.fileName)) {
         const sourceCode = editor.document.getText();
         const decorationsArray = [];
-        for (const non_ground_rule of rulesToFiles.get(editor.document.fileName)) {
-            const start = sourceCode.indexOf(non_ground_rule);
+        for (const nonGroundRule of rulesToFiles.get(editor.document.fileName)) {
+            const start = sourceCode.indexOf(nonGroundRule);
             if (start != -1) {
-                const range = new vscode.Range(editor.document.positionAt(start), editor.document.positionAt(start + non_ground_rule.length));
-                let instantiations = ground_rules.get(non_ground_rule);
-                let string_of_instances = "";
+                const range = new vscode.Range(editor.document.positionAt(start), editor.document.positionAt(start + nonGroundRule.length));
+                let instantiations = groundRules.get(nonGroundRule);
+                let stringOfInstances = "";
                 if (instantiations !== undefined) {
-                    string_of_instances = '**Ground instantiations**\n\n';
+                    stringOfInstances = '**Ground instantiations**\n\n';
                     for (const instance of instantiations) {
-                        string_of_instances = string_of_instances.concat(instance, '\n\n');
+                        stringOfInstances = stringOfInstances.concat(instance, '\n\n');
                     }
                 }
-                const decoration = {
-                    hoverMessage: string_of_instances,
+                let decoration = {
+                    hoverMessage: stringOfInstances,
                     range: range
                 };
                 decorationsArray.push(decoration);
@@ -39,25 +44,34 @@ function decorateEditor(editor, rulesToFiles, ground_rules) {
         editor.setDecorations(decorationType, decorationsArray);
     }
 }
-function decorateRules(files, non_ground_rules, ground_rules) {
-    activeTextEditorListener?.dispose();
+function decorateRules(files, musIndex) {
+    removeDecorations();
+    let nonGroundRules = musesCalculator.getNonGroundRulesForMUSes();
+    let groundRules = musesCalculator.getGroundRulesForMUS(musIndex);
+    if (nonGroundRules && nonGroundRules.length > 1)
+        vscode.commands.executeCommand('setContext', 'answer-set-programming-plugin.areMultipleMUSesPresent', true);
+    let filesToRules = outputFilesContainingMuses(nonGroundRules);
+    //Decorate the active editor if necessary
+    decorateEditor(lastActiveEditor, filesToRules, groundRules);
+}
+function outputFilesContainingMuses(nonGroundRules) {
+    let filesToRules = new Map();
+    for (const file of files) {
+        const content = fs.readFileSync(file);
+        for (const nonGroundRule of nonGroundRules[musIndex]) {
+            const start = content.indexOf(nonGroundRule);
+            if (start != -1) {
+                if (!filesToRules.has(file))
+                    filesToRules.set(file, []);
+                filesToRules.get(file).push(nonGroundRule);
+            }
+        }
+    }
     //Find in which file every rule is located and print it in the output channel
     if (!outputChannel)
         outputChannel = vscode.window.createOutputChannel("Debugger");
     outputChannel.clear();
     outputChannel.show();
-    let filesToRules = new Map();
-    for (const file of files) {
-        const content = fs.readFileSync(file);
-        for (const non_ground_rule of non_ground_rules) {
-            const start = content.indexOf(non_ground_rule);
-            if (start != -1) {
-                if (!filesToRules.has(file))
-                    filesToRules.set(file, []);
-                filesToRules.get(file).push(non_ground_rule);
-            }
-        }
-    }
     outputChannel.appendLine("These rules may be causing issues in the program:");
     for (const file of filesToRules.keys()) {
         outputChannel.appendLine("In file " + file + ":");
@@ -66,46 +80,53 @@ function decorateRules(files, non_ground_rules, ground_rules) {
         }
         outputChannel.appendLine("");
     }
-    //Decorate the active editor if necessary
-    decorateEditor(vscode.window.activeTextEditor, filesToRules, ground_rules);
-    //Set up a listener which decorates an editor when it is opened
-    activeTextEditorListener = vscode.window.onDidChangeActiveTextEditor(editor => {
-        decorateEditor(editor, filesToRules, ground_rules);
-    });
+    return filesToRules;
 }
 function removeDecorations() {
     vscode.window.activeTextEditor?.setDecorations(decorationType, []);
     outputChannel?.clear();
-    activeTextEditorListener?.dispose();
+}
+function highlightMUSes() {
+    removeDecorations();
+    if (lastActiveEditor && lastActiveEditor.document.languageId == "asp") {
+        vscode.commands.executeCommand('setContext', 'answer-set-programming-plugin.areMultipleMUSesPresent', false);
+        try {
+            if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length != 0) {
+                const linkings_file_path = path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, ".linkings.json");
+                files = debug.Linker.getLinkedFiles(lastActiveEditor.document.fileName, linkings_file_path);
+            }
+            else
+                files = [lastActiveEditor.document.fileName];
+            let myMuses = musesCalculator.calculateMUSes(files, 0);
+            musesNumber = myMuses.length;
+            musIndex = 0;
+            decorateRules(files, musIndex);
+        }
+        catch (error) {
+            vscode.window.showErrorMessage("There was a problem calculating the MUSes: " + error);
+        }
+    }
+}
+function getNextMus() {
+    musIndex = (musIndex + 1) % musesNumber;
+    decorateRules(files, musIndex);
+}
+function getPreviousMus() {
+    musIndex = musIndex - 1;
+    if (musIndex == -1)
+        musIndex = musesNumber - 1;
+    decorateRules(files, musIndex);
 }
 function initializeDebuggerFunctionalities(context) {
-    context.subscriptions.push(vscode.commands.registerCommand('answer-set-programming-plugin.highlightMuses', () => {
-        if (vscode.window.activeTextEditor && vscode.window.activeTextEditor.document.languageId == "asp") {
-            let non_ground_rules = null;
-            let ground_rules;
-            let musesCalculator = new debug.MUSesCalculator();
-            let files;
-            try {
-                if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length != 0) {
-                    const linkings_file_path = path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, ".linkings.json");
-                    files = debug.Linker.getLinkedFiles(vscode.window.activeTextEditor.document.fileName, linkings_file_path);
-                }
-                else
-                    files = [vscode.window.activeTextEditor.document.fileName];
-                musesCalculator.calculateMUSes(files, 1);
-                non_ground_rules = musesCalculator.getNonGroundRulesForMUSes();
-                ground_rules = musesCalculator.getGroundRulesForMUS(0);
-                //Only consider the first MUS for now
-                if (non_ground_rules && non_ground_rules.length > 0)
-                    decorateRules(files, non_ground_rules[0], ground_rules);
-                else
-                    removeDecorations();
-            }
-            catch (error) {
-                vscode.window.showErrorMessage("There was a problem calculating the MUSes: " + error);
-            }
+    lastActiveEditor = vscode.window.activeTextEditor;
+    activeTextEditorListener = vscode.window.onDidChangeActiveTextEditor(editor => {
+        if (editor?.document.languageId == "asp") {
+            lastActiveEditor = editor;
         }
-    }));
+    });
+    context.subscriptions.push(vscode.commands.registerCommand('answer-set-programming-plugin.highlightMuses', highlightMUSes));
+    context.subscriptions.push(vscode.commands.registerCommand('answer-set-programming-plugin.getNextMus', getNextMus));
+    context.subscriptions.push(vscode.commands.registerCommand('answer-set-programming-plugin.getPreviousMus', getPreviousMus));
 }
 exports.initializeDebuggerFunctionalities = initializeDebuggerFunctionalities;
 //# sourceMappingURL=debugger_functionalities.js.map

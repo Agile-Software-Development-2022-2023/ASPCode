@@ -56,8 +56,6 @@ function decorateRules(musIndex) {
     let groundRules = musesCalculator.getGroundRulesForMUS(musIndex);
     if (nonGroundRules && nonGroundRules.length > 1)
         vscode.commands.executeCommand('setContext', 'answer-set-programming-plugin.areMultipleMUSesPresent', true);
-    else
-        return;
     let filesToRules = outputFilesContainingMuses(nonGroundRules);
     //Decorate the active editor if necessary
     decorateEditor(vscode.window.activeTextEditor, filesToRules, groundRules);
@@ -118,10 +116,14 @@ function highlightMUSes() {
             nonGroundRules = musesCalculator.getNonGroundRulesForMUSes();
             musesNumber = myMuses.length;
             musIndex = 0;
-            decorateRules(musIndex);
+            if (musesNumber != 0)
+                decorateRules(musIndex);
         }
         catch (error) {
-            vscode.window.showErrorMessage("There was a problem calculating the MUSes: " + error);
+            if (error instanceof debug.InvalidLinkingsError)
+                vscode.window.showErrorMessage("There was a problem reading the linked files: invalid linking file");
+            else
+                vscode.window.showErrorMessage("There was a problem calculating the MUSes: " + error);
         }
     }
 }

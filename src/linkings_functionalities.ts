@@ -58,11 +58,11 @@ export function initializeLinkingsFunctionalities(context: vscode.ExtensionConte
 
             try {
                 debug.Linker.linkFiles(file_paths, linkings_file_path);   
+                vscode.window.showInformationMessage("The files have been successfully linked");
             } catch (error) {
                 if(error instanceof debug.InvalidLinkingsError)
                     vscode.window.showErrorMessage("There was a problem while linking the files: invalid linkings file")
             }
-            vscode.window.showInformationMessage("The files have been successfully linked");
         }
     }));
 
@@ -73,11 +73,11 @@ export function initializeLinkingsFunctionalities(context: vscode.ExtensionConte
 
             try {
                 debug.Linker.unlinkFile(path_to_file_in_focus, linkings_file_path);   
+                vscode.window.showInformationMessage("The file has been successfully unlinked");
             } catch (error) {
                 if(error instanceof debug.InvalidLinkingsError)
                     vscode.window.showErrorMessage("There was a problem while unlinking the file: invalid linkings file");
             }
-            vscode.window.showInformationMessage("The file has been successfully unlinked");
         }
     }));
 
@@ -93,11 +93,11 @@ export function initializeLinkingsFunctionalities(context: vscode.ExtensionConte
 
             try {
                 debug.Linker.disbandFilePool(path_to_file_in_focus, linkings_file_path);
+                vscode.window.showInformationMessage("The pool has been successfully disbanded");
             } catch (error) {
                 if(error instanceof debug.InvalidLinkingsError)
                     vscode.window.showErrorMessage("There was a problem while disbanding the pool: invalid linkings file");   
             }
-            vscode.window.showInformationMessage("The pool has been successfully disbanded");
         }
     }));
 

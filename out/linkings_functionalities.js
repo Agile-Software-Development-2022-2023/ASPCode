@@ -50,12 +50,12 @@ function initializeLinkingsFunctionalities(context) {
                 file_paths.push(path_to_file_in_focus);
             try {
                 debug.Linker.linkFiles(file_paths, linkings_file_path);
+                vscode.window.showInformationMessage("The files have been successfully linked");
             }
             catch (error) {
                 if (error instanceof debug.InvalidLinkingsError)
                     vscode.window.showErrorMessage("There was a problem while linking the files: invalid linkings file");
             }
-            vscode.window.showInformationMessage("The files have been successfully linked");
         }
     }));
     context.subscriptions.push(vscode.commands.registerCommand("answer-set-programming-plugin.unlinkFiles", function () {
@@ -64,12 +64,12 @@ function initializeLinkingsFunctionalities(context) {
             const linkings_file_path = path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, ".linkings.json");
             try {
                 debug.Linker.unlinkFile(path_to_file_in_focus, linkings_file_path);
+                vscode.window.showInformationMessage("The file has been successfully unlinked");
             }
             catch (error) {
                 if (error instanceof debug.InvalidLinkingsError)
                     vscode.window.showErrorMessage("There was a problem while unlinking the file: invalid linkings file");
             }
-            vscode.window.showInformationMessage("The file has been successfully unlinked");
         }
     }));
     context.subscriptions.push(vscode.commands.registerCommand("answer-set-programming-plugin.disbandPool", async function () {
@@ -82,12 +82,12 @@ function initializeLinkingsFunctionalities(context) {
             const linkings_file_path = path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, ".linkings.json");
             try {
                 debug.Linker.disbandFilePool(path_to_file_in_focus, linkings_file_path);
+                vscode.window.showInformationMessage("The pool has been successfully disbanded");
             }
             catch (error) {
                 if (error instanceof debug.InvalidLinkingsError)
                     vscode.window.showErrorMessage("There was a problem while disbanding the pool: invalid linkings file");
             }
-            vscode.window.showInformationMessage("The pool has been successfully disbanded");
         }
     }));
     context.subscriptions.push(vscode.commands.registerCommand("answer-set-programming-plugin.viewAllPools", function () {

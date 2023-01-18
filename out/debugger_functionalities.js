@@ -10,6 +10,7 @@ let musesCalculator = new debug.MUSesCalculator();
 let musesNumber = 0;
 let musIndex = 0;
 let nonGroundRules;
+let hoverMessages = new Map;
 let files;
 let decorationIndex = 0;
 let decorationTypes = [];
@@ -21,9 +22,18 @@ decorationTypes.push(vscode.window.createTextEditorDecorationType({
     backgroundColor: 'rgba(247, 127, 7, 0.3)',
     rangeBehavior: vscode.DecorationRangeBehavior.ClosedClosed
 }));
+let decorationTypesForMissingSupport = [];
+decorationTypesForMissingSupport.push(vscode.window.createTextEditorDecorationType({
+    backgroundColor: 'rgba(245, 184, 42, 0.3)',
+    rangeBehavior: vscode.DecorationRangeBehavior.ClosedClosed
+}));
+decorationTypesForMissingSupport.push(vscode.window.createTextEditorDecorationType({
+    backgroundColor: 'rgba(247, 127, 7, 0.3)',
+    rangeBehavior: vscode.DecorationRangeBehavior.ClosedClosed
+}));
 let outputChannel = null;
 let activeTextEditorListener = null;
-function decorateEditor(editor, rulesToFiles, groundRules) {
+function decorateEditor(editor, rulesToFiles, groundRules, isMUS) {
     if (!editor)
         return;
     if (rulesToFiles.has(editor.document.fileName)) {
@@ -35,20 +45,32 @@ function decorateEditor(editor, rulesToFiles, groundRules) {
                 const range = new vscode.Range(editor.document.positionAt(start), editor.document.positionAt(start + nonGroundRule.length));
                 let instantiations = groundRules.get(nonGroundRule);
                 let stringOfInstances = "";
+                let hoverMessage;
                 if (instantiations !== undefined) {
-                    stringOfInstances = '**Ground instantiations**\n\n';
+                    if (isMUS)
+                        stringOfInstances = '**Ground instantiations**\n\n';
+                    else
+                        stringOfInstances = '**Ground instantiations which would have been derived**\n\n';
                     for (const instance of instantiations) {
                         stringOfInstances = stringOfInstances.concat(instance, '\n\n');
                     }
+                    if (!hoverMessages.has(nonGroundRule)) {
+                        hoverMessages.set(nonGroundRule, "");
+                    }
+                    hoverMessage = hoverMessages.get(nonGroundRule).concat('\n\n\n\n' + stringOfInstances);
+                    hoverMessages.set(nonGroundRule, hoverMessage);
                 }
                 let decoration = {
-                    hoverMessage: stringOfInstances,
+                    hoverMessage: hoverMessage,
                     range: range
                 };
                 decorationsArray.push(decoration);
             }
         }
-        editor.setDecorations(decorationTypes[decorationIndex], decorationsArray);
+        if (isMUS)
+            editor.setDecorations(decorationTypes[decorationIndex], decorationsArray);
+        else
+            editor.setDecorations(decorationTypesForMissingSupport[decorationIndex], decorationsArray);
     }
 }
 function decorateRules(musIndex) {
@@ -56,32 +78,70 @@ function decorateRules(musIndex) {
     let groundRules = musesCalculator.getGroundRulesForMUS(musIndex);
     if (nonGroundRules && nonGroundRules.length > 1)
         vscode.commands.executeCommand('setContext', 'answer-set-programming-plugin.areMultipleMUSesPresent', true);
-    let filesToRules = outputFilesContainingMuses(nonGroundRules);
+    let filesToRules = outputFilesContainingMuses(nonGroundRules, "These rules may be causing issues in the program (MUS " + (musIndex + 1) + " of " + musesNumber + "):", true);
     //Decorate the active editor if necessary
-    decorateEditor(vscode.window.activeTextEditor, filesToRules, groundRules);
+    decorateEditor(vscode.window.activeTextEditor, filesToRules, groundRules, true);
+    //Every time that rules are decorated, even missing support rules must to be decoreted.
+    let missingSupportRules = musesCalculator.getMissingSupportRulesFromMUS(musIndex);
+    let filesWithMissingSupportRules;
+    let convertedMissingSupportMap = new Map;
+    if (missingSupportRules.size !== 0) {
+        filesWithMissingSupportRules = outputFilesContainingMuses(missingSupportRules, "These rules may be causing missing support issues in the program (MUS " + (musIndex + 1) + " of " + musesNumber + "):", false);
+        missingSupportRules.forEach((value, key) => {
+            Array.from(value).forEach((nonGround) => {
+                if (!convertedMissingSupportMap.has(nonGround)) {
+                    convertedMissingSupportMap.set(nonGround, []);
+                }
+                convertedMissingSupportMap.get(nonGround).push(key);
+            });
+        });
+        decorateEditor(vscode.window.activeTextEditor, filesWithMissingSupportRules, convertedMissingSupportMap, false);
+    }
     activeTextEditorListener = vscode.window.onDidChangeActiveTextEditor(editor => {
-        decorateEditor(editor, filesToRules, groundRules);
+        hoverMessages.clear();
+        decorateEditor(editor, filesToRules, groundRules, true);
+        if (missingSupportRules.size !== 0)
+            decorateEditor(vscode.window.activeTextEditor, filesWithMissingSupportRules, convertedMissingSupportMap, false);
     });
 }
-function outputFilesContainingMuses(nonGroundRules) {
-    let filesToRules = new Map();
-    for (const file of files) {
-        const content = fs.readFileSync(file);
-        for (const nonGroundRule of nonGroundRules[musIndex]) {
+function iterateOverMissingSupportRules(filesToRules, missingSupportRules, content, file) {
+    for (const setOfNonGroundRule of missingSupportRules.values()) {
+        setOfNonGroundRule.forEach(nonGroundRule => {
             const start = content.indexOf(nonGroundRule);
             if (start != -1) {
                 if (!filesToRules.has(file))
                     filesToRules.set(file, []);
                 filesToRules.get(file).push(nonGroundRule);
             }
+        });
+    }
+}
+function iterateOverMUSesRules(filesToRules, nonGroundRules, content, file) {
+    for (const nonGroundRule of nonGroundRules[musIndex]) {
+        const start = content.indexOf(nonGroundRule);
+        if (start != -1) {
+            if (!filesToRules.has(file))
+                filesToRules.set(file, []);
+            filesToRules.get(file).push(nonGroundRule);
         }
+    }
+}
+function outputFilesContainingMuses(nonGroundRules, lineToAppend, toClear) {
+    let filesToRules = new Map();
+    for (const file of files) {
+        const content = fs.readFileSync(file);
+        if (nonGroundRules instanceof (Array))
+            iterateOverMUSesRules(filesToRules, nonGroundRules, content, file);
+        else
+            iterateOverMissingSupportRules(filesToRules, nonGroundRules, content, file);
     }
     //Find in which file every rule is located and print it in the output channel
     if (!outputChannel)
         outputChannel = vscode.window.createOutputChannel("Debugger");
-    outputChannel.clear();
+    if (toClear)
+        outputChannel.clear();
     outputChannel.show(true);
-    outputChannel.appendLine("These rules may be causing issues in the program (MUS " + (musIndex + 1) + " of " + musesNumber + "):");
+    outputChannel.appendLine(lineToAppend);
     for (const file of filesToRules.keys()) {
         outputChannel.appendLine("In file " + file + ":");
         for (const rule of filesToRules.get(file)) {
@@ -98,7 +158,9 @@ function removeDecorations() {
     activeTextEditorListener?.dispose();
 }
 function highlightMUSes() {
+    hoverMessages.clear();
     removeDecorations();
+    decorationIndex = 0;
     const activeEditor = vscode.window.activeTextEditor;
     if ((0, linkings_functionalities_1.checkCurrentFile)()) {
         vscode.commands.executeCommand('setContext', 'answer-set-programming-plugin.areMultipleMUSesPresent', false);
@@ -129,6 +191,7 @@ function highlightMUSes() {
 }
 function getNextMus() {
     if ((0, linkings_functionalities_1.checkCurrentFile)()) {
+        hoverMessages.clear();
         musIndex = (musIndex + 1) % musesNumber;
         decorationIndex = (decorationIndex + 1) % decorationTypes.length;
         decorateRules(musIndex);
@@ -136,6 +199,7 @@ function getNextMus() {
 }
 function getPreviousMus() {
     if ((0, linkings_functionalities_1.checkCurrentFile)()) {
+        hoverMessages.clear();
         musIndex = musIndex - 1;
         if (musIndex == -1)
             musIndex = musesNumber - 1;

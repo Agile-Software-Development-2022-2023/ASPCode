@@ -9,6 +9,7 @@ let musesNumber = 0;
 let musIndex = 0;
 let nonGroundRules: Set<string>[];
 let hoverMessages: Map<string, string> =  new Map;
+let decorationMap: Map<string, vscode.DecorationOptions> = new Map;
 
 let files: string[];
 
@@ -23,16 +24,6 @@ decorationTypes.push( vscode.window.createTextEditorDecorationType({
 	rangeBehavior: vscode.DecorationRangeBehavior.ClosedClosed
 }));
 
-let decorationTypesForMissingSupport : vscode.TextEditorDecorationType[] = [];
-decorationTypesForMissingSupport.push( vscode.window.createTextEditorDecorationType({
-	backgroundColor: 'rgba(245, 184, 42, 0.3)',
-	rangeBehavior: vscode.DecorationRangeBehavior.ClosedClosed
-}));
-decorationTypesForMissingSupport.push( vscode.window.createTextEditorDecorationType({
-	backgroundColor: 'rgba(247, 127, 7, 0.3)',
-	rangeBehavior: vscode.DecorationRangeBehavior.ClosedClosed
-}));
-
 let outputChannel: vscode.OutputChannel | null = null;
 let activeTextEditorListener: vscode.Disposable | null = null;
 
@@ -42,7 +33,6 @@ function decorateEditor(editor: vscode.TextEditor | undefined, rulesToFiles: Map
 
 	if (rulesToFiles.has(editor.document.fileName)) {
 		const sourceCode = editor.document.getText();
-		const decorationsArray: vscode.DecorationOptions[] = [];
 
 		for (const nonGroundRule of rulesToFiles.get(editor.document.fileName)!) {
 			const start = sourceCode.indexOf(nonGroundRule);
@@ -51,12 +41,12 @@ function decorateEditor(editor: vscode.TextEditor | undefined, rulesToFiles: Map
 					editor.document.positionAt(start),
 					editor.document.positionAt(start + nonGroundRule.length)
 				);
-		
+
 				let instantiations = groundRules.get(nonGroundRule)
 				let stringOfInstances: string = "";
 				let hoverMessage;
-
 				if (instantiations !== undefined) {
+					
 					if (isMUS) 
 						stringOfInstances = '**Ground instantiations**\n\n';
 					else 
@@ -75,14 +65,9 @@ function decorateEditor(editor: vscode.TextEditor | undefined, rulesToFiles: Map
 					hoverMessage: hoverMessage,
 					range: range
 				}
-				decorationsArray.push(decoration)
+				decorationMap.set(nonGroundRule, decoration);
 			}
 		}
-
-		if (isMUS)
-			editor.setDecorations(decorationTypes[decorationIndex], decorationsArray)
-		else 
-			editor.setDecorations(decorationTypesForMissingSupport[decorationIndex], decorationsArray)
 	}
 }
 
@@ -93,17 +78,21 @@ function decorateRules(musIndex: number) {
 
 	if (nonGroundRules && nonGroundRules.length > 1)
 		vscode.commands.executeCommand('setContext', 'answer-set-programming-plugin.areMultipleMUSesPresent', true);
-	let filesToRules = outputFilesContainingMuses(nonGroundRules, "These rules may be causing issues in the program (MUS " + (musIndex + 1) +  " of " + musesNumber +  "):", true);
-
-	//Decorate the active editor if necessary
-	decorateEditor(vscode.window.activeTextEditor, filesToRules, groundRules, true);
+	
+	let filesToRules: Map<string, string[]> = new Map;
+	if (nonGroundRulesContainValidSets(nonGroundRules)) {
+		filesToRules = outputFilesContainingMuses(nonGroundRules, "These rules may be causing issues in the program (MUS " + (musIndex + 1) +  " of " + musesNumber +  "):", true);
+		//Decorate the active editor if necessary
+		decorateEditor(vscode.window.activeTextEditor, filesToRules, groundRules, true);
+	}
 
 	//Every time that rules are decorated, even missing support rules must to be decoreted.
 	let missingSupportRules = musesCalculator.getMissingSupportRulesFromMUS(musIndex);
 	let filesWithMissingSupportRules : Map<string, string[]>;
 	let convertedMissingSupportMap : Map<string, string[]> = new Map;
-
-	if (missingSupportRules.size !== 0) {
+	if (missingSupportRules.size !== 0) 
+		filterEmptySetFromMissingSupportRules(missingSupportRules);
+	if (missingSupportRules.size > 0) {
 		filesWithMissingSupportRules = outputFilesContainingMuses(missingSupportRules, "These rules may be causing missing support issues in the program (MUS " + (musIndex + 1) +  " of " + musesNumber +  "):", false);
 		missingSupportRules.forEach((value, key) => {
 			Array.from(value).forEach((nonGround) => {
@@ -116,12 +105,58 @@ function decorateRules(musIndex: number) {
 		decorateEditor(vscode.window.activeTextEditor, filesWithMissingSupportRules, convertedMissingSupportMap, false)
 	}
 
+	showDecorations(vscode.window.activeTextEditor);
+
 	activeTextEditorListener = vscode.window.onDidChangeActiveTextEditor(editor => {
 		hoverMessages.clear();
+		decorationMap.clear();
+
 		decorateEditor(editor, filesToRules, groundRules, true);
 		if (missingSupportRules.size !== 0)
-			decorateEditor(vscode.window.activeTextEditor, filesWithMissingSupportRules, convertedMissingSupportMap, false)
+			decorateEditor(editor, filesWithMissingSupportRules, convertedMissingSupportMap, false);
+		
+		showDecorations(editor);
 	});
+}
+
+function filterEmptySetFromMissingSupportRules(missingSupportRules: Map<string, Set<string>>) {
+	let firstEmptySet : boolean = false;
+	for (const groundRule of missingSupportRules.keys()) {
+		if (missingSupportRules.get(groundRule)!.size == 0) {
+			if (!firstEmptySet)
+				firstEmptySet = true;
+
+			if (!outputChannel)
+				outputChannel = vscode.window.createOutputChannel("Debugger");
+			outputChannel.show(true);
+
+			if (firstEmptySet)
+				outputChannel.appendLine("These ground atoms may be affected by missing support issues (MUS " + (musIndex + 1) +  " of " + musesNumber +  "):");
+			outputChannel.appendLine(groundRule);
+			
+			missingSupportRules.delete(groundRule);
+		}
+	}
+	if (firstEmptySet)
+		outputChannel!.appendLine("")
+}
+
+function showDecorations(editor: vscode.TextEditor | undefined) {
+	let decorationsArray = Array.from(decorationMap.values());
+
+	if(decorationsArray.length != 0)
+		editor!.setDecorations(decorationTypes[decorationIndex], decorationsArray);
+}
+
+function nonGroundRulesContainValidSets(nonGroundRules: Set<string>[]): boolean {
+	if (nonGroundRules.length > 1) 
+		return true
+	if (nonGroundRules.length == 1) {
+		if (nonGroundRules[0].size == 0)
+			return false
+		return true
+	}
+	return false
 }
 
 function iterateOverMissingSupportRules(filesToRules: Map<string, string[]>, missingSupportRules: Map<string, Set<string>>, content: Buffer, file: string) {
@@ -181,14 +216,16 @@ function outputFilesContainingMuses(nonGroundRules: Map<string, Set<string>> | S
 
 
 function removeDecorations() {
-	for(let i = 0; i < decorationTypes.length; ++i)
+	for(let i = 0; i < decorationTypes.length; ++i) {
 		vscode.window.activeTextEditor!.setDecorations(decorationTypes[i], []);
+	}
 	outputChannel?.clear();
 	activeTextEditorListener?.dispose();
 }
 
 function highlightMUSes(): void {
 	hoverMessages.clear();
+	decorationMap.clear();
 	removeDecorations();
 	decorationIndex = 0;
 	const activeEditor = vscode.window.activeTextEditor;
@@ -230,6 +267,7 @@ function highlightMUSes(): void {
 function getNextMus(): void {
 	if(checkCurrentFile()) {
 		hoverMessages.clear();
+		decorationMap.clear();
 		musIndex = (musIndex + 1) % musesNumber;
 		decorationIndex = (decorationIndex + 1) % decorationTypes.length;
 		decorateRules(musIndex);
@@ -239,6 +277,7 @@ function getNextMus(): void {
 function getPreviousMus(): void {
 	if(checkCurrentFile()) {
 		hoverMessages.clear();
+		decorationMap.clear();
 		musIndex = musIndex - 1;
 		if (musIndex == -1)
 			musIndex = musesNumber - 1;

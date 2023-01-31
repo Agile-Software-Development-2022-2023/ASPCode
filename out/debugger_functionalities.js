@@ -78,7 +78,7 @@ function decorateRules(musIndex) {
     if (missingSupportRules.size !== 0)
         filterEmptySetFromMissingSupportRules(missingSupportRules);
     if (missingSupportRules.size > 0) {
-        filesWithMissingSupportRules = outputFilesContainingMuses(missingSupportRules, "These rules may be causing missing support issues in the program (MUS " + (musIndex + 1) + " of " + musesNumber + "):", false);
+        filesWithMissingSupportRules = outputFilesContainingMuses(missingSupportRules, "These rules may be affected by missing support issues in the program (MUS " + (musIndex + 1) + " of " + musesNumber + "):", false);
         missingSupportRules.forEach((value, key) => {
             Array.from(value).forEach((nonGround) => {
                 if (!convertedMissingSupportMap.has(nonGround)) {
@@ -109,7 +109,7 @@ function filterEmptySetFromMissingSupportRules(missingSupportRules) {
                 outputChannel = vscode.window.createOutputChannel("Debugger");
             outputChannel.show(true);
             if (firstEmptySet)
-                outputChannel.appendLine("These ground atoms may be affected by missing support issues (MUS " + (musIndex + 1) + " of " + musesNumber + "):");
+                outputChannel.appendLine("These ground atoms can not be generated cause missing support issues (MUS " + (musIndex + 1) + " of " + musesNumber + "):");
             outputChannel.appendLine(groundRule);
             missingSupportRules.delete(groundRule);
         }

@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.initializeDebuggerFunctionalities = void 0;
 const vscode = require("vscode");
-const debug = require("asp-debugger");
+const debug = require("@asp-debugger/asp-debugger");
 const path = require("path");
 const fs = require("fs");
 const linkings_functionalities_1 = require("./linkings_functionalities");

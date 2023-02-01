@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import * as debug from '@asp-debugger/asp-debugger';
+import * as debug from 'asp-debugger';
 import path = require('path');
 
 //Checks if there is a workspace loaded in which to search for the linkings file

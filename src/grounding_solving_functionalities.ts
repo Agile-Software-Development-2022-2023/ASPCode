@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import * as debug from '@asp-debugger/asp-debugger';
+import * as debug from 'asp-debugger';
 import { checkCurrentFile, checkWorkspace } from './linkings_functionalities';
 import path = require('path');
 

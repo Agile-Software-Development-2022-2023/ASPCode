@@ -264,7 +264,6 @@
 		"@typescript-eslint/eslint-plugin": "^5.45.0",
 		"@typescript-eslint/parser": "^5.45.0",
 		"@vscode/test-electron": "^2.1.5",
-		"@asp-debugger/asp-debugger": "^0.0.7",
 		"eslint": "^8.29.0",
 		"glob": "^8.0.3",
 		"mocha": "^10.0.0",
@@ -276,5 +275,8 @@
 		"url": "https://github.com/Agile-Software-Development-2022-2023/ASPCode.git"
 	},
 	"homepage": "https://github.com/Agile-Software-Development-2022-2023/ASPCode/blob/master/README.md",
-	"icon": "images/icon.png"
+	"icon": "images/icon.png",
+	"dependencies": {
+		"asp-debugger": "git+https://github.com/Agile-Software-Development-2022-2023/ASP-Debugger.git#master"
+	}
 }

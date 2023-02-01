@@ -1,70 +1,43 @@
-# answer-set-programming-plugin README
+# Answer Set Programming Debugger
 
-This is the README for your extension "answer-set-programming-plugin". After writing up a brief description, we recommend including the following sections.
+This extension provides debugging features for incoherent ASP programs based on Minimal 
+Unsatisfiable Subsets (MUS) and missing support computation.
+ 
+The extension works with .lp and .asp files and is able to debug incoherent ASP programs, even written in multiple files.
 
-## Features
+# Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+## File linking
 
-For example if there is an image subfolder under your extension project workspace:
+Multiple files can be linked together so that they are considered part of the same programs and are given to the debugger and the ASP system altogether. These functionalities can be accessed under the **ASP > Linking** submenu in the Context Menu.
 
-\!\[feature X\]\(images/feature-x.png\)
+<img src="./images/Linkings.jpg" alt="Linkings" width="1000" />
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+## Running logic programs
 
-## Requirements
+A logic program can be grounded and solved by using commands that can be accessed under the **ASP > Grounding and solving** submenu in the Context Menu. 
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+<img src="./images/Grounding and solving.jpg" alt="Grounding and solving" width="1000" />
 
-## Extension Settings
+## Calculating MUSes and missing support
+ 
+To debug a given program all you have to do is press the debug button in the top bar of the editor and the extension will debug all the linked files. For a program with multiple MUSes, arrow icons will appear beside the debug icon to traverse them.
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+<img src="./images/Show debug icon.jpg" alt="Debug icon location" width="1000" />
 
-For example:
+As result the rules that are causing issues inside the program will be highlighted and written in the output terminal. You can also hover the cursor on the highlighted rules for more information on the associated ground instantiations.
 
-This extension contributes the following settings:
+<img src="./images/Show debug result.jpg" alt="Debug results" width="1000" />
 
-* `myExtension.enable`: enable/disable this extension
-* `myExtension.thing`: set to `blah` to do something
+Annotations in the form of comments can be used in the logic programs to specify different behaviors to the debugger.
+Global annotations specify a default policy for MUSes calculation to the debugger. They are in the form **%#debug default=?**, where **?** can be one of:
+- **rules_only**: The debugger will only check rules which are not facts for correctness (this is the default with no annotations)
+- **facts_only**: The debugger will only check rules which are facts for correctness
+- **all**: The debugger will check every rule for correctness
 
-## Known Issues
+Another global annotation, **%#debug support=none**, tells the debugger to not check for missing support in the logic program. 
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
------------------------------------------------------------------------------------------------------------
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-**Note:** You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux)
-* Toggle preview (`Shift+CMD+V` on macOS or `Shift+Ctrl+V` on Windows and Linux)
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets
-
-### For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+Inline annotations specify actions to take with respect to the next rule found after the annotation in the program, 
+- **%@skip**: Do not check the rule for correctness (even if it would be checked for the default policy)
+- **%@correct**: Same as **%@skip**
+- **%@check**: Check the rule for correctness (even if it would not be checked for the default policy)

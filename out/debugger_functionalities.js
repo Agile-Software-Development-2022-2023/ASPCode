@@ -139,7 +139,8 @@ function iterateOverMissingSupportRules(filesToRules, missingSupportRules, conte
             if (start != -1) {
                 if (!filesToRules.has(file))
                     filesToRules.set(file, []);
-                filesToRules.get(file).push(nonGroundRule);
+                if (!filesToRules.get(file).includes(nonGroundRule))
+                    filesToRules.get(file).push(nonGroundRule);
             }
         });
     }

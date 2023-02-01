@@ -1,13 +1,37 @@
 {
-	"name": "answer-set-programming-plugin",
-	"displayName": "Answer Set Programming Plugin",
-	"description": "",
-	"version": "0.0.1",
+	"name": "answer-set-programming-debugger",
+	"displayName": "Answer Set Programming Debugger",
+	"description": "An extension for debugging incoherence in logic programs",
+	"version": "1.0.0",
+	"publisher": "asp-debugger",
 	"engines": {
 		"vscode": "^1.73.0"
 	},
+	"contributors": [
+		{
+			"name": "Bruno Francesco Barbara"
+		},
+		{
+			"name": "Alessia Donata Camarda"
+		},
+		{
+			"name": "Riccardo Carnevali"
+		},
+		{
+			"name": "Andrea Cuteri"
+		},
+		{
+			"name": "Cristian Porco"
+		},
+		{
+			"name": "Matteo Puccio"
+		},
+		{
+			"name": "Agostino Rizzo"
+		}
+	],
 	"categories": [
-		"Other"
+		"Programming Languages"
 	],
 	"activationEvents": [
 		"onLanguage:asp"
@@ -240,12 +264,17 @@
 		"@typescript-eslint/eslint-plugin": "^5.45.0",
 		"@typescript-eslint/parser": "^5.45.0",
 		"@vscode/test-electron": "^2.1.5",
+		"@asp-debugger/asp-debugger": "^0.0.7",
 		"eslint": "^8.29.0",
 		"glob": "^8.0.3",
 		"mocha": "^10.0.0",
 		"typescript": "^4.9.3"
 	},
-	"dependencies": {
-		"asp-debugger": "git+https://github.com/Agile-Software-Development-2022-2023/ASP-Debugger.git#develop"
-	}
+	"license": "SEE LICENSE IN LICENSE.txt",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Agile-Software-Development-2022-2023/ASPCode.git"
+	},
+	"homepage": "https://github.com/Agile-Software-Development-2022-2023/ASPCode/blob/master/README.md",
+	"icon": "images/icon.png"
 }

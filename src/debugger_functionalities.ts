@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import * as debug from 'asp-debugger';
+import * as debug from '@asp-debugger/asp-debugger';
 import path = require('path');
 import fs = require('fs');
 import { checkCurrentFile, checkWorkspace } from './linkings_functionalities';
@@ -166,7 +166,8 @@ function iterateOverMissingSupportRules(filesToRules: Map<string, string[]>, mis
 			if (start != -1) {
 				if (!filesToRules.has(file))
 					filesToRules.set(file, []);
-				filesToRules.get(file)!.push(nonGroundRule);
+				if(!filesToRules.get(file)!.includes(nonGroundRule))
+					filesToRules.get(file)!.push(nonGroundRule);
 			}
 		});
 	}

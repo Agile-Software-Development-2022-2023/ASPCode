@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.initializeDebuggerFunctionalities = void 0;
 const vscode = require("vscode");
-const debug = require("@asp-debugger/asp-debugger");
+const debug = require("asp-debugger");
 const path = require("path");
 const fs = require("fs");
 const linkings_functionalities_1 = require("./linkings_functionalities");
@@ -41,7 +41,7 @@ function decorateEditor(editor, rulesToFiles, groundRules, isMUS) {
                     if (isMUS)
                         stringOfInstances = '**Ground instantiations**\n\n';
                     else
-                        stringOfInstances = '**Ground instantiations which would have been derived**\n\n';
+                        stringOfInstances = '**Needed ground atoms which could not be derived**\n\n';
                     for (const instance of instantiations) {
                         stringOfInstances = stringOfInstances.concat(instance, '\n\n');
                     }
@@ -109,7 +109,7 @@ function filterEmptySetFromMissingSupportRules(missingSupportRules) {
                 outputChannel = vscode.window.createOutputChannel("Debugger");
             outputChannel.show(true);
             if (firstEmptySet)
-                outputChannel.appendLine("These ground atoms can not be generated cause missing support issues (MUS " + (musIndex + 1) + " of " + musesNumber + "):");
+                outputChannel.appendLine("These ground atoms could not be generated cause missing support issues (MUS " + (musIndex + 1) + " of " + musesNumber + "):");
             outputChannel.appendLine(groundRule);
             missingSupportRules.delete(groundRule);
         }

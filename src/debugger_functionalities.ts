@@ -50,7 +50,7 @@ function decorateEditor(editor: vscode.TextEditor | undefined, rulesToFiles: Map
 					if (isMUS) 
 						stringOfInstances = '**Ground instantiations**\n\n';
 					else 
-						stringOfInstances = '**Ground instantiations which would have been derived**\n\n';
+						stringOfInstances = '**Needed ground atoms which could not be derived**\n\n';
 					for (const instance of instantiations) {
 						stringOfInstances = stringOfInstances.concat(instance, '\n\n')
 					}
@@ -131,7 +131,7 @@ function filterEmptySetFromMissingSupportRules(missingSupportRules: Map<string, 
 			outputChannel.show(true);
 
 			if (firstEmptySet)
-				outputChannel.appendLine("These ground atoms can not be generated cause missing support issues (MUS " + (musIndex + 1) +  " of " + musesNumber +  "):");
+				outputChannel.appendLine("These ground atoms could not be generated cause missing support issues (MUS " + (musIndex + 1) +  " of " + musesNumber +  "):");
 			outputChannel.appendLine(groundRule);
 			
 			missingSupportRules.delete(groundRule);

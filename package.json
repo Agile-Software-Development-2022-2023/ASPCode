@@ -2,7 +2,7 @@
 	"name": "answer-set-programming-debugger",
 	"displayName": "Answer Set Programming Debugger",
 	"description": "An extension for debugging incoherence in logic programs",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"publisher": "asp-debugger",
 	"engines": {
 		"vscode": "^1.73.0"
@@ -106,7 +106,7 @@
 				"enablement": "editorLangId == asp"
 			}
 		],
-		"keybindings":[
+		"keybindings": [
 			{
 				"command": "answer-set-programming-plugin.viewAllPools",
 				"key": "ctrl+alt+v",
